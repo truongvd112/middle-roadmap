@@ -10,4 +10,4 @@ CREATE TABLE IF NOT EXISTS bank_account (
 
 INSERT INTO bank_account (name, phone_number, email, bank_account_number, bank_name, money)
 VALUES ('Vegeta', '0123456789', 'vegeta@example.com', '1234567890', 'Bank A', 10000000),
-       ('Son Goku', '987654321', 'sonGoku@example.com', '1234567890', 'Bank A', 20000000);
+       ('Son Goku', '987654321', 'sonGoku@example.com', '987654321', 'Bank A', 20000000);

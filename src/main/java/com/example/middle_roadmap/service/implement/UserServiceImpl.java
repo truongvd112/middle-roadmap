@@ -9,6 +9,7 @@ import com.example.middle_roadmap.service.UserService;
 import com.example.middle_roadmap.utils.ThreadPoolExecutorUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final Object lockGlobal = new Object();
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Override
     public BaseResponse list() {
@@ -104,26 +105,6 @@ public class UserServiceImpl implements UserService {
                     synchronized (lock) {
                         user1.withdraw(money);
                         user2.deposit(money);
-                        times.getAndDecrement();
-                    }
-                }
-            });
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            throw new CustomRuntimeException(ex);
-        } finally {
-            executor.shutdown();
-        }
-    }
-
-    private void depositMoney(User user, Long money){
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try{
-            AtomicInteger times = new AtomicInteger(500);
-            executor.execute(() -> {
-                while(times.get() > 0){
-                    synchronized (lockGlobal) {
-                        user.deposit(money);
                         times.getAndDecrement();
                     }
                 }
