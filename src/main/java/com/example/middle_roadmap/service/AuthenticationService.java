@@ -5,4 +5,6 @@ import com.example.middle_roadmap.dto.authentication.LoginRequest;
 
 public interface AuthenticationService {
     BaseResponse login(LoginRequest request);
+    String getCurrentUser();
+    String getCurrentRole();
 }

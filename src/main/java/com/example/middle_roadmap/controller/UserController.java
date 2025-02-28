@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @CrossOrigin
 @RequestMapping("${api.prefix}/user")
-@PreAuthorize("@userAuthorizeService.hasRole()")
+//@PreAuthorize("@userAuthorizeService.hasRole()")
 public class UserController {
     private final UserService userService;
 

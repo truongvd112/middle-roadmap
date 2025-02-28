@@ -6,6 +6,7 @@ import com.example.middle_roadmap.entity.Device;
 import com.example.middle_roadmap.entity.User;
 import com.example.middle_roadmap.repository.DeviceRepository;
 import com.example.middle_roadmap.repository.UserRepository;
+import com.example.middle_roadmap.service.AuthenticationService;
 import com.example.middle_roadmap.service.CurrentUserService;
 import com.example.middle_roadmap.service.UserService;
 import com.example.middle_roadmap.utils.Constants;
@@ -31,6 +32,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final DeviceRepository deviceRepository;
     private final CurrentUserService currentUserService;
+    private final AuthenticationService authenticationService;
     private final RedisTemplate<String, Object> redisTemplate;
     @PersistenceContext
     private EntityManager entityManager;
@@ -55,12 +57,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public BaseResponse removeDevice(List<Long> deviceIds) {
-        String roles = currentUserService.getRoles();
+//        String roles = currentUserService.getRoles();
+        String roles = authenticationService.getCurrentRole();
         if(roles.contains(Constants.ROLE.ROLE_ADMIN)){
             deviceRepository.deleteByIdIn(deviceIds);
             return BaseResponse.simpleSuccess("success");
         } else {
-            User user = userRepository.findByUsername(currentUserService.getLoginId());
+            User user = userRepository.findByUsername(authenticationService.getCurrentUser());
             List<Long> ids = user.getDevices().stream().map(Device::getId).collect(Collectors.toList());
             if(new HashSet<>(ids).containsAll(deviceIds)){
                 deviceRepository.deleteByIdIn(deviceIds);
@@ -75,7 +78,7 @@ public class UserServiceImpl implements UserService {
     public BaseResponse addDevice(List<Device> devices, Long userId) {
         User user;
         if (userId == null) {
-            user = userRepository.findByUsername(currentUserService.getLoginId());
+            user = userRepository.findByUsername(authenticationService.getCurrentUser());
         } else {
             user = userRepository.findById(String.valueOf(userId)).orElse(null);
         }
