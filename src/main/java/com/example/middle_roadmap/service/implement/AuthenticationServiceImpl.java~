@@ -1,0 +1,40 @@
+package com.example.middle_roadmap.service.implement;
+
+import com.example.middle_roadmap.dto.BaseResponse;
+import com.example.middle_roadmap.dto.authentication.LoginRequest;
+import com.example.middle_roadmap.entity.User;
+import com.example.middle_roadmap.exception.CustomRuntimeException;
+import com.example.middle_roadmap.repository.UserRepository;
+import com.example.middle_roadmap.service.AuthenticationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AuthenticationServiceImpl implements AuthenticationService {
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    @Override
+    public BaseResponse login(LoginRequest request) {
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authenticationProperties);
+            return BaseResponse.simpleSuccess("success");
+        } catch (AuthenticationException ex) {
+            throw new CustomRuntimeException("Invalid username or password");
+        }
+    }
+}

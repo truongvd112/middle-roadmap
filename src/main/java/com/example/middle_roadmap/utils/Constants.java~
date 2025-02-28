@@ -1,0 +1,20 @@
+package com.example.middle_roadmap.utils;
+
+import lombok.Getter;
+
+import java.util.Locale;
+
+public class Constants {
+    public static final class ROLE {
+        public static final String ROLE_ADMIN = "admin";
+    }
+
+    @Getter
+    public enum ErrorCode {
+        ACTIVE("active"),
+        FIRST_TIME("first_time"),
+        EXPIRED("expired");
+
+        private final String status;
+    }
+}

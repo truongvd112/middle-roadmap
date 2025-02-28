@@ -27,4 +27,8 @@ public class BaseResponse {
     public static BaseResponse simpleSuccess(String message) {
         return BaseResponse.builder().isError(false).message(message).build();
     }
+
+    public static BaseResponse simpleFailed(String message) {
+        return BaseResponse.builder().isError(true).message(message).build();
+    }
 }

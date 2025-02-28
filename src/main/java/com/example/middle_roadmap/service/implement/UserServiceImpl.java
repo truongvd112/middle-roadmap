@@ -2,21 +2,26 @@ package com.example.middle_roadmap.service.implement;
 
 import com.example.middle_roadmap.dto.BaseResponse;
 import com.example.middle_roadmap.dto.DataListResponse;
+import com.example.middle_roadmap.entity.Device;
 import com.example.middle_roadmap.entity.User;
-import com.example.middle_roadmap.exception.CustomRuntimeException;
+import com.example.middle_roadmap.repository.DeviceRepository;
 import com.example.middle_roadmap.repository.UserRepository;
+import com.example.middle_roadmap.service.CurrentUserService;
 import com.example.middle_roadmap.service.UserService;
-import com.example.middle_roadmap.utils.ThreadPoolExecutorUtil;
+import com.example.middle_roadmap.utils.Constants;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -24,7 +29,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final DeviceRepository deviceRepository;
+    private final CurrentUserService currentUserService;
     private final RedisTemplate<String, Object> redisTemplate;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Override
     public BaseResponse list() {
@@ -45,75 +54,56 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public BaseResponse threadExample() {
-        Object lock = new Object();
-        AtomicInteger x = new AtomicInteger(1);
-        countAndPrint(x, lock, 1);
-        countAndPrint(x, lock, 2);
-        countAndPrint(x, lock, 3);
-        return BaseResponse.simpleSuccess("success");
+    public BaseResponse removeDevice(List<Long> deviceIds) {
+        String roles = currentUserService.getRoles();
+        if(roles.contains(Constants.ROLE.ROLE_ADMIN)){
+            deviceRepository.deleteByIdIn(deviceIds);
+            return BaseResponse.simpleSuccess("success");
+        } else {
+            User user = userRepository.findByUsername(currentUserService.getLoginId());
+            List<Long> ids = user.getDevices().stream().map(Device::getId).collect(Collectors.toList());
+            if(new HashSet<>(ids).containsAll(deviceIds)){
+                deviceRepository.deleteByIdIn(deviceIds);
+                return BaseResponse.simpleSuccess("success");
+            } else {
+                return BaseResponse.simpleFailed("can not delete other users' devices");
+            }
+        }
     }
 
     @Override
-    public BaseResponse bankTransfer(long userId1, long userId2) {
-        User userA = userRepository.getReferenceById(String.valueOf(userId1));
-        User userB = userRepository.getReferenceById(String.valueOf(userId2));
-        //
-        Object lock = new Object();
-
-        transferMoney(userA, userB, 10000L, lock);
-        transferMoney(userB, userA, 20000L, lock);
-//        depositMoney(userA, 1000L);
-//        depositMoney(userB, 1000L);
-        return BaseResponse.simpleSuccess("success");
+    public BaseResponse addDevice(List<Device> devices, Long userId) {
+        User user;
+        if (userId == null) {
+            user = userRepository.findByUsername(currentUserService.getLoginId());
+        } else {
+            user = userRepository.findById(String.valueOf(userId)).orElse(null);
+        }
+        if (user != null) {
+            user.getDevices().addAll(devices);
+            userRepository.save(user);
+            return BaseResponse.simpleSuccess("success");
+        }
+        return BaseResponse.simpleFailed("userId does not exist");
     }
 
-    private void countAndPrint(AtomicInteger x, Object lock, int threadNumber){
-        ExecutorService executor = ThreadPoolExecutorUtil.createFixedThreadPool();
-        try{
-            executor.execute(() -> {
-                while (x.get() <= 30) {
-                    synchronized (lock) {
-                        if (x.get() % 3 == threadNumber % 3) {
-                            System.out.println("Thread " + threadNumber + " prints: " + x);
-                            x.getAndAdd(1);
-                            lock.notifyAll();
-                        } else {
-                            try {
-                                lock.wait();
-                            } catch (InterruptedException e) {
-                                Thread.currentThread().interrupt();
-                            }
-                        }
-                    }
-                }
-            });
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            throw new CustomRuntimeException(ex);
-        } finally {
-            executor.shutdown();
+    private List<User> NPlus1Problem() {
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            // each call will take one more query
+            System.out.println(user.getDevices().size());
         }
-    }
-
-    private void transferMoney(User user1, User user2, Long money, Object lock){
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try{
-            AtomicInteger times = new AtomicInteger(30);
-            executor.execute(() -> {
-                while(times.get() > 0){
-                    synchronized (lock) {
-                        user1.withdraw(money);
-                        user2.deposit(money);
-                        times.getAndDecrement();
-                    }
-                }
-            });
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            throw new CustomRuntimeException(ex);
-        } finally {
-            executor.shutdown();
-        }
+        // first solution - join fetch
+        List<User> usersQuery = entityManager.createQuery(
+                        "SELECT a FROM User a JOIN FETCH a.devices", User.class)
+                .getResultList();
+        // second solution - use BatchSize
+        // third solution - use entity graph
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph("User.devices");
+        List<User> usersEntityGraph = entityManager.createQuery(
+                        "SELECT d FROM User d", User.class)
+                .setHint("javax.persistence.fetchgraph", entityGraph)
+                .getResultList();
+        return users;
     }
 }

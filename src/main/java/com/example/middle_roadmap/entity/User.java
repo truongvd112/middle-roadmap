@@ -1,35 +1,43 @@
 package com.example.middle_roadmap.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "bank_account")
+@Table(name = "users")
+@NamedEntityGraph(
+        name = "User.devices",
+        attributeNodes = @NamedAttributeNode("devices")
+)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull
+    @Column(name = "username")
+    private String username;
+    @Column(name = "password")
+    private String password;
     @Column(name = "name")
     private String name;
+    @Column(name = "role")
+    private String role;
     @Column(name = "phone_number")
     private String phoneNumber;
     @Column(name = "email")
     private String email;
-    @Column(name = "bank_account_Number")
-    private String bankAccountNumber;
-    @Column(name = "bank_name")
-    private String bankName;
-    @Column(name = "money")
-    private Long money;
 
-    public void deposit(Long moneyDeposit){
-        this.money += moneyDeposit;
-    }
-
-    public void withdraw(Long moneyDeposit){
-        this.money -= moneyDeposit;
-    }
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+//    @BatchSize(size = 2)
+    @Fetch(FetchMode.SUBSELECT)
+    private List<Device> devices;
 }
