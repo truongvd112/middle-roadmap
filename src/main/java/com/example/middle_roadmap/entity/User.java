@@ -15,8 +15,11 @@ import java.util.List;
 @Setter
 @Table(name = "users")
 @NamedEntityGraph(
-        name = "User.devices",
-        attributeNodes = @NamedAttributeNode("devices")
+        name = "User.devicesAndRole",
+        attributeNodes = {
+            @NamedAttributeNode("devices"),
+            @NamedAttributeNode("role")
+        }
 )
 public class User {
     @Id
@@ -29,8 +32,6 @@ public class User {
     private String password;
     @Column(name = "name")
     private String name;
-    @Column(name = "role")
-    private String role;
     @Column(name = "phone_number")
     private String phoneNumber;
     @Column(name = "email")
@@ -40,4 +41,8 @@ public class User {
 //    @BatchSize(size = 2)
     @Fetch(FetchMode.SUBSELECT)
     private List<Device> devices;
+
+    @ManyToOne()
+    @JoinColumn(name = "role_id")
+    private Role role;
 }

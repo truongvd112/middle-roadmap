@@ -15,4 +15,5 @@ public interface UserService {
     BaseResponse delete(long id);
     BaseResponse removeDevice(List<Long> deviceIds);
     BaseResponse addDevice(List<Device> deviceIds, Long userId);
+    BaseResponse updateUserByNativeQuery(User user);
 }

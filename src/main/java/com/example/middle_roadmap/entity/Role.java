@@ -1,27 +1,24 @@
 package com.example.middle_roadmap.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@Table(name = "device")
-public class Device {
+@Table(name = "roles")
+public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "type")
-    private String type;
+    @NotNull
     @Column(name = "name")
     private String name;
-    @Column(name = "quantity")
-    private int quantity;
-    @Column(name = "price")
-    private Long price;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
+    @OneToMany(mappedBy = "role")
+    private List<User> users;
 }

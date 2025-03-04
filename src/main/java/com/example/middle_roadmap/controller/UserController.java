@@ -51,4 +51,11 @@ public class UserController {
     ) {
         return new ResponseEntity<>(userService.removeDevice(deviceIds), HttpStatus.OK);
     }
+
+    @PutMapping("/update")
+    public ResponseEntity<Object> updateByNativeQuery(
+            @RequestBody @Valid User user
+    ) {
+        return new ResponseEntity<>(userService.updateUserByNativeQuery(user), HttpStatus.OK);
+    }
 }

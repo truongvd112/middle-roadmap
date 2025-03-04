@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `account` (
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255),
-    role VARCHAR(255),
+    role_id VARCHAR(255),
     username VARCHAR(255),
     password VARCHAR(512),
     phone_number VARCHAR(20),
@@ -27,15 +27,24 @@ CREATE TABLE IF NOT EXISTS device (
     user_id BIGINT
 );
 
+CREATE TABLE IF NOT EXISTS roles (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255)
+);
+
 INSERT INTO `account` (name, phone_number, email, bank_account_number, bank_name, money)
 VALUES ('Vegeta', '0123456789', 'vegeta@example.com', '1234567890', 'Bank A', 10000000),
        ('Son Goku', '987654321', 'sonGoku@example.com', '987654321', 'Bank A', 20000000);
 
-INSERT INTO users (name, role, phone_number, username, password, email)
-VALUES ('Vegeta', 'admin', '0123456789', 'vegeta', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'vegeta@example.com'),
-       ('Son Goku', 'client', '987654321', 'songoku', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songoku@example.com'),
-       ('Son GoHan', 'client', '012345678', 'songohan', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songohan@example.com'),
-       ('Son GoTen', 'client', '01234567', 'songoten', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songoten@example.com');
+INSERT INTO roles (name)
+VALUES ('Admin'),
+       ('Client');
+
+INSERT INTO users (name, role_id, phone_number, username, password, email)
+VALUES ('Vegeta', 1, '0123456789', 'vegeta', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'vegeta@example.com'),
+       ('Son Goku', 2, '987654321', 'songoku', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songoku@example.com'),
+       ('Son GoHan', 2, '012345678', 'songohan', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songohan@example.com'),
+       ('Son GoTen', 2, '01234567', 'songoten', '$2a$12$YNvwSFjBJlC8SG/.MFJYoeuQt/QglY67D9iPb8VSDeilbvJZobphm', 'songoten@example.com');
 
 INSERT INTO device  (type, name, quantity, price, user_id)
 VALUES ('phone', 'Iphone 15', 2, 30000000, 1),

@@ -2,14 +2,17 @@ package com.example.middle_roadmap.service.implement;
 
 import com.example.middle_roadmap.dto.BaseResponse;
 import com.example.middle_roadmap.dto.DataListResponse;
+import com.example.middle_roadmap.dto.user.UserDto;
 import com.example.middle_roadmap.entity.Device;
 import com.example.middle_roadmap.entity.User;
+import com.example.middle_roadmap.exception.CustomRuntimeException;
 import com.example.middle_roadmap.repository.DeviceRepository;
 import com.example.middle_roadmap.repository.UserRepository;
 import com.example.middle_roadmap.service.AuthenticationService;
 import com.example.middle_roadmap.service.CurrentUserService;
 import com.example.middle_roadmap.service.UserService;
 import com.example.middle_roadmap.utils.Constants;
+import com.example.middle_roadmap.utils.converters.mapper.UserMapper;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -21,8 +24,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,13 +35,17 @@ public class UserServiceImpl implements UserService {
     private final CurrentUserService currentUserService;
     private final AuthenticationService authenticationService;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final UserMapper userMapper;
     @PersistenceContext
     private EntityManager entityManager;
 
     @Override
     public BaseResponse list() {
-        List<User> users = userRepository.findAll();
-        return DataListResponse.builder().dataList(users).build();
+        List<User> usersQuery = entityManager.createQuery(
+                        "SELECT a FROM User a JOIN FETCH a.devices JOIN FETCH a.role", User.class)
+                .getResultList();
+        List<UserDto> userDtos = userMapper.toDto(usersQuery);
+        return DataListResponse.builder().dataList(userDtos).build();
     }
 
     @Override
@@ -64,12 +69,12 @@ public class UserServiceImpl implements UserService {
             return BaseResponse.simpleSuccess("success");
         } else {
             User user = userRepository.findByUsername(authenticationService.getCurrentUser());
-            List<Long> ids = user.getDevices().stream().map(Device::getId).collect(Collectors.toList());
+            List<Long> ids = user.getDevices().stream().map(Device::getId).toList();
             if(new HashSet<>(ids).containsAll(deviceIds)){
                 deviceRepository.deleteByIdIn(deviceIds);
                 return BaseResponse.simpleSuccess("success");
             } else {
-                return BaseResponse.simpleFailed("can not delete other users' devices");
+                throw new CustomRuntimeException("can not delete other users' devices");
             }
         }
     }
@@ -90,6 +95,12 @@ public class UserServiceImpl implements UserService {
         return BaseResponse.simpleFailed("userId does not exist");
     }
 
+    @Override
+    public BaseResponse updateUserByNativeQuery(User user) {
+        userRepository.updateUserByNativeQuery(user.getId(), user.getName(), user.getPhoneNumber(), user.getEmail(), user.getRole().getId());
+        return BaseResponse.simpleSuccess("success");
+    }
+
     private List<User> NPlus1Problem() {
         List<User> users = userRepository.findAll();
         for (User user : users) {
@@ -102,11 +113,12 @@ public class UserServiceImpl implements UserService {
                 .getResultList();
         // second solution - use BatchSize
         // third solution - use entity graph
-        EntityGraph<?> entityGraph = entityManager.getEntityGraph("User.devices");
+        EntityGraph<?> entityGraph = entityManager.getEntityGraph("User.devicesAndRole");
         List<User> usersEntityGraph = entityManager.createQuery(
                         "SELECT d FROM User d", User.class)
                 .setHint("javax.persistence.fetchgraph", entityGraph)
                 .getResultList();
+        // forth solution - use @Fetch(FetchMode.SUBSELECT)
         return users;
     }
 }
