@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
@@ -14,6 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Table(name = "users")
+@Slf4j
 @NamedEntityGraph(
         name = "User.devicesAndRole",
         attributeNodes = {
@@ -45,4 +47,17 @@ public class User {
     @ManyToOne()
     @JoinColumn(name = "role_id")
     private Role role;
+
+    @Transient
+    private String fullName;
+
+    @PrePersist
+    public void logNewUserAttempt() {
+        log.info("Attempting to add new user with username: " + username);
+    }
+
+    @PostLoad
+    public void logUserLoad() {
+        fullName = name + " " + username;
+    }
 }

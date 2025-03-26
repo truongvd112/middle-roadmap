@@ -39,12 +39,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             String sessionId = CommonUtils.generateSessionId(request.getUsername());
             String token = jwtUtil.createToken(authentication, user, sessionId);
             // example for delegate spring security
-//                ExecutorService executor = Executors.newSingleThreadExecutor();
-//                executor.execute(() -> {
-//                    // can take authentication from context in another thread
-//                    Authentication authen = SecurityContextHolder.getContext().getAuthentication();
-//                    System.out.println(authen.getAuthorities());
-//                });
+                ExecutorService executor = Executors.newSingleThreadExecutor();
+                executor.execute(() -> {
+                    // can take authentication from context in another thread
+                    Authentication authen = SecurityContextHolder.getContext().getAuthentication();
+                    System.out.println(authen.getAuthorities());
+                });
             //
             return BaseResponse.simpleSuccess(token);
         } catch (AuthenticationException ex) {
