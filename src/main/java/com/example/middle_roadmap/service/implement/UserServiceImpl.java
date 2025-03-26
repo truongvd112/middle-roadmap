@@ -11,13 +11,17 @@ import com.example.middle_roadmap.repository.DeviceRepository;
 import com.example.middle_roadmap.repository.UserRepository;
 import com.example.middle_roadmap.service.CurrentUserService;
 import com.example.middle_roadmap.service.UserService;
+import com.example.middle_roadmap.service.cache.UserCacheService;
 import com.example.middle_roadmap.utils.Constants;
 import com.example.middle_roadmap.utils.converters.mapper.UserMapper;
+import jakarta.annotation.Resource;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -39,6 +43,9 @@ public class UserServiceImpl implements UserService {
     private final CustomUserRepository userRepositoryCustom;
     @PersistenceContext
     private EntityManager entityManager;
+    @Resource
+    private ApplicationContext applicationContext;
+    private final UserCacheService cacheService;
 
     @Override
     public BaseResponse list() {
@@ -53,13 +60,27 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public BaseResponse save(User user) {
+        if(user.getId() != null){
+            User target = userRepository.findById(user.getId());
+            System.out.println("update: " + target);
+        } else {
+            System.out.println("create");
+        }
         userRepository.save(user);
         return BaseResponse.simpleSuccess("success");
     }
 
     @Override
     public BaseResponse delete(long id) {
-        userRepository.deleteById(String.valueOf(id));
+        // first way is use applicationContext, it's quite difficult
+        UserServiceImpl self = applicationContext.getBean(UserServiceImpl.class);
+        self.deleteById(id);
+        // second way, we can use to another class to implement some function which relate Cache, it's better
+        // it's suitable for a function more than just relate to db
+        // it is more convenient to use
+        cacheService.deleteById(id);
+        // if just relate to db we can use @CacheEvict in repository
+        userRepository.deleteById(id);
         return BaseResponse.simpleSuccess("success");
     }
 
@@ -124,5 +145,10 @@ public class UserServiceImpl implements UserService {
                 .getResultList();
         // forth solution - use @Fetch(FetchMode.SUBSELECT)
         return users;
+    }
+
+    @CacheEvict(value = "users", key = "#id")
+    public void deleteById(Long id){
+        userRepository.deleteById(String.valueOf(id));
     }
 }

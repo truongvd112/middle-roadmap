@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -54,10 +56,23 @@ public class User {
     @PrePersist
     public void logNewUserAttempt() {
         log.info("Attempting to add new user with username: " + username);
+        Authentication authen = SecurityContextHolder.getContext().getAuthentication(); // can take authentication from context
+        System.out.println(authen.getAuthorities());
+    }
+
+    @PreUpdate
+    public void logUpdateUserAttempt() {
+        log.info("Attempting to update user with username: " + username);
+    }
+
+    @PreRemove
+    public void logDeleteUserAttempt() {
+        log.info("Attempting to delete user with username: " + username);
     }
 
     @PostLoad
     public void logUserLoad() {
+        log.info("Loaded user with username: " + username);
         fullName = name + " " + username;
     }
 }
