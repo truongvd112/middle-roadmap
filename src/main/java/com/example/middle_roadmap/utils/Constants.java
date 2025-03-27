@@ -6,7 +6,7 @@ import org.springframework.http.HttpStatus;
 
 public class Constants {
     public static final class ROLE {
-        public static final String ROLE_ADMIN = "admin";
+        public static final String ROLE_ADMIN = "Admin";
     }
 
     @Getter

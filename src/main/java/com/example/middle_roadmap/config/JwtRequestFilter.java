@@ -25,11 +25,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         String loginId = null;
         String userId = null;
         String token = null;
-        if (authorizationHeader != null && !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring("Bearer ".length());
             try {
                 loginId = jwtUtil.getLoginIdFromToken(token);
-                userId = jwtUtil.extractUserId(token);
+//                userId = String.valueOf(jwtUtil.extractUserId(token));
             } catch (ExpiredJwtException ex) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("JWT Token has expired");
@@ -37,11 +37,11 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             }
 
         }
-        if (userId != null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("JWT Token has been removed");
-            return;
-        }
+//        if (userId != null) {
+//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+//            response.getWriter().write("JWT Token has been removed");
+//            return;
+//        }
 
         if (loginId != null && SecurityContextHolder.getContext().getAuthentication() == null && jwtUtil.validateToken(token, loginId)) {
 

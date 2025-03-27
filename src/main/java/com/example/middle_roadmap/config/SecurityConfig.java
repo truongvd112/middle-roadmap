@@ -1,5 +1,7 @@
 package com.example.middle_roadmap.config;
 
+import com.example.middle_roadmap.handler.JwtAuthenticationEntryPoint;
+import com.example.middle_roadmap.utils.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
@@ -16,6 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 
 @EnableMethodSecurity()
@@ -23,14 +26,23 @@ import org.springframework.security.web.SecurityFilterChain;
 @RequiredArgsConstructor
 @Configuration
 public class SecurityConfig {
+    private final JwtUtil jwtUtil;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .addFilterBefore(
+                        new JwtRequestFilter(jwtUtil),
+                        UsernamePasswordAuthenticationFilter.class
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                )
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/swagger*",
                                 "/api/swagger-ui/**",
                                 "/api/v3/api-docs/**",
-                                "/api/**", // should be deleted after apply jwt
+                                "/api/user/login",
                                 "/h2-console/**",
                                 "/actuator/**"
                         ).permitAll()

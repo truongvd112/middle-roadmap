@@ -78,13 +78,13 @@ public class JwtUtil {
     public List<GrantedAuthority> extractAuthorities(String token) {
         Claims claims = getAllClaimsFromToken(token);
         var role = (String) claims.get("roles");
-        var userId = (String) claims.get("userId");
+        var userId = (Integer) claims.get("userId");
         var userName = (String) claims.getSubject();
-        return List.of(new SimpleGrantedAuthority(role), new SimpleGrantedAuthority(userId), new SimpleGrantedAuthority(userName));
+        return List.of(new SimpleGrantedAuthority(role), new SimpleGrantedAuthority(String.valueOf(userId)), new SimpleGrantedAuthority(userName));
     }
 
-    public String extractUserId(String token) {
+    public Integer extractUserId(String token) {
         Claims claims = getAllClaimsFromToken(token);
-        return (String) claims.get("userId");
+        return (Integer) claims.get("userId");
     }
 }
