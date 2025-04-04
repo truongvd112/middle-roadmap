@@ -47,7 +47,7 @@ public class User {
     private List<Device> devices;
 
     @ManyToOne()
-    @JoinColumn(name = "role_id")
+    @JoinColumn(name = "role_id", referencedColumnName = "id")
     private Role role;
 
     @Transient
