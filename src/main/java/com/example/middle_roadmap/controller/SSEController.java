@@ -1,0 +1,57 @@
+package com.example.middle_roadmap.controller;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+@RestController
+@Slf4j
+@RequiredArgsConstructor
+@CrossOrigin
+@RequestMapping("${api.prefix}/sse")
+public class SSEController {
+    private final Map<String, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
+
+    @GetMapping("/sse/notifications")
+    public SseEmitter streamNotifications(@RequestParam String userId) {
+        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
+
+        userEmitters.computeIfAbsent(userId, _ -> new CopyOnWriteArrayList<>()).add(emitter);
+
+        emitter.onCompletion(() -> userEmitters.get(userId).remove(emitter));
+        emitter.onTimeout(() -> userEmitters.get(userId).remove(emitter));
+        emitter.onError((_) -> userEmitters.get(userId).remove(emitter));
+
+        return emitter;
+    }
+
+    // API test để push "notification"
+    @PostMapping("/send")
+    public ResponseEntity<String> sendNotification(
+            @RequestParam String userId,
+            @RequestBody String message) {
+
+        List<SseEmitter> emitters = userEmitters.getOrDefault(userId, Collections.emptyList());
+        List<SseEmitter> deadEmitters = new ArrayList<>();
+
+        for (SseEmitter emitter : emitters) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("notification")
+                        .data(message)
+                        .id(UUID.randomUUID().toString()));
+            } catch (Exception e) {
+                deadEmitters.add(emitter);
+            }
+        }
+
+        emitters.removeAll(deadEmitters);
+        return ResponseEntity.ok("Sent to user " + userId);
+    }
+}
