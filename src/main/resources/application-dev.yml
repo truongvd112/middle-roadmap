@@ -1,0 +1,62 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: middle-roadmap
+  datasource:
+#    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password: 123456
+    url: ${URL_DATABASE:jdbc:postgresql://192.168.3.25:5432/postgres?currentSchema=public}&TimeZone=Asia/Ho_Chi_Minh
+    username: ${USERNAME_DB:dev}
+    password: ${PASSWORD_DB:1}
+    driver-class-name: org.postgresql.Driver
+  sql:
+    init:
+      mode: always
+#  h2:
+#    console:
+#      enabled: true
+#      path: /h2-console  # Mở console tại http://localhost:8082/h2-console
+  jpa:
+    hibernate:
+#      ddl-auto: create-drop   # Tạo hoặc cập nhật schema tự động
+      ddl-auto: update
+    show-sql: true       # Hiển thị SQL trong log
+    open-in-view: true
+  redis:
+    host: ${REDIS_HOST:127.0.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:redis-password}
+
+api:
+  prefix: /api
+
+jwt:
+  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
+  expiration-time: 86400000
+
+springdoc:
+  api-docs:
+    path: /middle-roadmap/v3/api-docs #these urls will used to load the swagger ui of this service by the api gateway
+  swagger-ui:
+    path: /middle-roadmap/swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+info:
+  app:
+    name: Middle Roadmap
+    version: 1.0.0
+    description: App for my all test in Spring boot in middle road map from DungTT in 2025
+
+logging:
+  logstash:
+    host: localhost
+    port: 5044

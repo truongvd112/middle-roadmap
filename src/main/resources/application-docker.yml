@@ -1,0 +1,50 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: middle-roadmap
+  datasource:
+    url: jdbc:postgresql://postgres:5432/postgres?currentSchema=public&TimeZone=Asia/Ho_Chi_Minh
+    username: dev
+    password: 1
+    driver-class-name: org.postgresql.Driver
+  redis:
+    host: redis
+    port: 6379
+    password: redis-password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: true
+
+api:
+  prefix: /api
+
+jwt:
+  secret: c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
+  expiration-time: 86400000
+
+springdoc:
+  api-docs:
+    path: /middle-roadmap/v3/api-docs
+  swagger-ui:
+    path: /middle-roadmap/swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+info:
+  app:
+    name: Middle Roadmap
+    version: 1.0.0
+    description: App for my all test in Spring boot in middle road map from DungTT in 2025
+
+logging:
+  logstash:
+    host: logstash
+    port: 5044

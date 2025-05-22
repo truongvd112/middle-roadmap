@@ -1,0 +1,5 @@
+- pipeline.id: spring-boot-logs
+  path.config: "/usr/share/logstash/pipeline/pipelines/logs.conf"
+
+- pipeline.id: sale-table-sync
+  path.config: "/usr/share/logstash/pipeline/pipelines/sale_kafka.conf"

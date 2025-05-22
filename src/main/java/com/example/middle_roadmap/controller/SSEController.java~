@@ -26,7 +26,7 @@ public class SSEController {
 
         emitter.onCompletion(() -> userEmitters.get(userId).remove(emitter));
         emitter.onTimeout(() -> userEmitters.get(userId).remove(emitter));
-        emitter.onError((error) -> userEmitters.get(userId).remove(emitter));
+        emitter.onError((_) -> userEmitters.get(userId).remove(emitter));
 
         return emitter;
     }

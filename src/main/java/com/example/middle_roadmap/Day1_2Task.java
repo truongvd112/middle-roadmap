@@ -21,7 +21,7 @@ public class Day1_2Task {
         // create a list of 1000 random integer
         Random random = new Random();
         List<Integer> list = IntStream.range(0, 1000)
-                .map(_ -> random.nextInt(10000))
+                .map(number -> random.nextInt(10000))
                 .boxed()
                 .collect(Collectors.toList());
 
