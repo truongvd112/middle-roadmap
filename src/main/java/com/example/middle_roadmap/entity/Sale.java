@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,4 +19,8 @@ public class Sale {
     @NotNull
     @Column(name = "amount")
     private BigInteger amount;
+    @Column(name = "version")
+    private Integer version;
+    private LocalDateTime createdAt;
+    private String description;
 }

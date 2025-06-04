@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 echo "🔁 Waiting for Kafka Connect to start..."
 
@@ -8,13 +8,31 @@ until curl -s http://kafka-connect:8083/; do
   sleep 5
 done
 
-echo "🚀 Creating Debezium connector 'sale-connector'..."
+echo "🚀 Creating Debezium connectors ..."
 
-# send JSON create connector
-curl -i -X POST \
-  -H "Accept:application/json" \
-  -H "Content-Type:application/json" \
-  --data-binary "@/kafka/connectors/sale-connector.json" \
-  http://kafka-connect:8083/connectors/
+CONNECTOR_DIR="/kafka/connectors"
 
-echo "✅ Created successfully connector."
+for connector_file in "$CONNECTOR_DIR"/*.json; do
+  connector_name=$(basename "$connector_file" .json)
+  echo "📤 Creating connector: $connector_name"
+
+  response=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+    -H "Accept:application/json" \
+    -H "Content-Type:application/json" \
+    --data-binary "@$connector_file" \
+    http://kafka-connect:8083/connectors/)
+
+  http_body=$(echo "$response" | sed '$d')
+  http_status=$(echo "$response" | tail -n1)
+
+  if [ "$response" -eq 201 ]; then
+    echo "✅ Connector $connector_name created successfully."
+  elif [ "$response" -eq 409 ]; then
+    echo "⚠️  Connector $connector_name already exists. Skipping..."
+  else
+    echo "❌ Failed to create connector $connector_name (HTTP $http_status)"
+    echo "🧾 Error response:"
+    echo "$http_body"
+  fi
+done
+

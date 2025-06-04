@@ -1,5 +1,5 @@
 {
-  "name": "sale-connector",
+  "name": "pg-connector",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "database.hostname": "postgres-db",
@@ -11,7 +11,8 @@
     "table.include.list": "public.sales,public.users,public.roles",
     "plugin.name": "pgoutput",
     "tombstones.on.delete": "false",
-    "slot.name": "sale_slot",
-    "topic.prefix": "pg"
+    "slot.name": "pg_slot",
+    "topic.prefix": "pg",
+    "decimal.handling.mode": "string"
   }
 }
