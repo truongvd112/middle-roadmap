@@ -1,4 +1,4 @@
-package com.example.middle_roadmap.utils.converters.mapper;
+package com.example.middle_roadmap.mapper;
 import com.example.middle_roadmap.dto.user.UserDto;
 import com.example.middle_roadmap.entity.User;
 import org.mapstruct.Mapper;

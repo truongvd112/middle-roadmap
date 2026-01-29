@@ -13,7 +13,7 @@ import com.example.middle_roadmap.service.CurrentUserService;
 import com.example.middle_roadmap.service.UserService;
 import com.example.middle_roadmap.service.cache.UserCacheService;
 import com.example.middle_roadmap.utils.Constants;
-import com.example.middle_roadmap.utils.converters.mapper.UserMapper;
+import com.example.middle_roadmap.mapper.UserMapper;
 import jakarta.annotation.Resource;
 import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
@@ -124,27 +124,6 @@ public class UserServiceImpl implements UserService {
     public BaseResponse updateUserByNativeQuery(User user) {
         userRepository.updateUserByNativeQuery(user.getId(), user.getName(), user.getPhoneNumber(), user.getEmail(), user.getRole().getId());
         return BaseResponse.simpleSuccess("success");
-    }
-
-    private List<User> NPlus1Problem() {
-        List<User> users = userRepository.findAll();
-        for (User user : users) {
-            // each call will take one more query
-            System.out.println(user.getDevices().size());
-        }
-        // first solution - join fetch
-        List<User> usersQuery = entityManager.createQuery(
-                        "SELECT a FROM User a JOIN FETCH a.devices", User.class)
-                .getResultList();
-        // second solution - use BatchSize
-        // third solution - use entity graph
-        EntityGraph<?> entityGraph = entityManager.getEntityGraph("User.devicesAndRole");
-        List<User> usersEntityGraph = entityManager.createQuery(
-                        "SELECT d FROM User d", User.class)
-                .setHint("javax.persistence.fetchgraph", entityGraph)
-                .getResultList();
-        // forth solution - use @Fetch(FetchMode.SUBSELECT)
-        return users;
     }
 
     @CacheEvict(value = "users", key = "#id")

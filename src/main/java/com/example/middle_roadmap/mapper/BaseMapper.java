@@ -1,4 +1,4 @@
-package com.example.middle_roadmap.utils.converters.mapper;
+package com.example.middle_roadmap.mapper;
 
 import java.util.List;
 
