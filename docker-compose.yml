@@ -176,6 +176,8 @@ services:
       - logstash
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     networks:
       - elk-net
 
